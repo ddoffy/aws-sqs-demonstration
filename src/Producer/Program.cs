@@ -15,29 +15,30 @@ namespace Producer
     {
         private const int MaxMessages = 1;
         private const int WaitTime = 2;
-        private const string QueueUrl = "https://sqs.ap-southeast-1.amazonaws.com/085402372441/Doffy-AWS-Queues";
-        private const string AWSId = "[Key]";
-        private const string AWSSecret = "[Secret]";
-
+        private const string QueueUrl = "queue url";
+        private const string AWSId = "key";
+        private const string AWSSecret = "secret";
+        private const string ProfileName = "my_profile";
         static async Task Main(string[] args)
         {
 
             // For illustrative purposes only--do not include credentials in your code.
-            WriteProfile("my_new_profile", "AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY");
+            WriteProfile(ProfileName, AWSId, AWSSecret);
 
-            AddRegion("my_new_profile", RegionEndpoint.APSoutheast1);
+            AddRegion(ProfileName, RegionEndpoint.APSoutheast1);
 
 
-            //var sqsClient = new AmazonSQSClient();
-            //await ShowQueues(sqsClient);
-            //while (true)
-            //{
-            //    var response = await GetMessage(sqsClient, QueueUrl, WaitTime);
-            //    foreach (var item in response.Messages)
-            //    {
-            //        Console.WriteLine($"Queue message: {item.Body} {string.Join(";", item.Attributes?.Values.ToList())}");
-            //    }
-            //}
+            CredentialProfile profile = null;
+            SharedCredentialsFile sharedCredentialsFile = new SharedCredentialsFile();
+
+            if (sharedCredentialsFile.TryGetProfile(ProfileName, out profile))
+            {
+                var sqsClient = new AmazonSQSClient(profile.GetAWSCredentials(sharedCredentialsFile), profile.Region);
+
+                await ShowQueues(sqsClient);
+
+            }
+
         }
 
 
