@@ -8,6 +8,8 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Amazon.Runtime.CredentialManagement;
 using Amazon;
+using Microsoft.Extensions.Configuration;
+using Amazon.Runtime;
 
 namespace Producer
 {
@@ -15,30 +17,17 @@ namespace Producer
     {
         private const int MaxMessages = 1;
         private const int WaitTime = 2;
-        private const string QueueUrl = "queue url";
-        private const string AWSId = "key";
-        private const string AWSSecret = "secret";
-        private const string ProfileName = "my_profile";
+
         static async Task Main(string[] args)
         {
+            IConfigurationBuilder builder = new ConfigurationBuilder().
+                AddJsonFile("appsettings.json", false, true);
+            IConfigurationRoot root = builder.Build();
+            AWSConfig aWSConfig = new AWSConfig();
+            root.GetSection(AWSConfig.AWS).Bind(aWSConfig);
+            var sqsClient = new AmazonSQSClient(aWSConfig.Key, aWSConfig.Secret, aWSConfig.Token, RegionEndpoint.APSoutheast1);
 
-            // For illustrative purposes only--do not include credentials in your code.
-            WriteProfile(ProfileName, AWSId, AWSSecret);
-
-            AddRegion(ProfileName, RegionEndpoint.APSoutheast1);
-
-
-            CredentialProfile profile = null;
-            SharedCredentialsFile sharedCredentialsFile = new SharedCredentialsFile();
-
-            if (sharedCredentialsFile.TryGetProfile(ProfileName, out profile))
-            {
-                var sqsClient = new AmazonSQSClient(profile.GetAWSCredentials(sharedCredentialsFile), profile.Region);
-
-                await ShowQueues(sqsClient);
-
-            }
-
+            await ShowQueues(sqsClient);
         }
 
 
